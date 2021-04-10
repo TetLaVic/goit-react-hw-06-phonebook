@@ -2,11 +2,12 @@ import { Component } from 'react';
 import ContactListItem from './ContactListItem/ContactListItem';
 import PropTypes from 'prop-types';
 import styles from './ContactList.module.css';
+import { connect } from 'react-redux';
+import actions from '../../redux/ContactForm/ContactForm-actions';
 
 class ContactList extends Component {
   render() {
-    const { onContactsToShow, onDeleteContact } = this.props;
-    const contactsList = onContactsToShow();
+    const { contactsList, onDeleteContact } = this.props;
     return (
       <ul>
         {contactsList.map(({ name, number, id }) => {
@@ -27,7 +28,22 @@ class ContactList extends Component {
 }
 
 ContactList.propTypes = {
-  onContactsToShow: PropTypes.func.isRequired,
   onDeleteContact: PropTypes.func.isRequired,
 };
-export default ContactList;
+
+const getContactsToShow = ({ filter, items }) => {
+  const normalizedFilter = filter.toLowerCase();
+  return items.filter(({ name }) =>
+    name ? name.toLowerCase().includes(normalizedFilter) : false,
+  );
+};
+
+const mapStateToProps = state => ({
+  contactsList: getContactsToShow(state.contacts),
+});
+
+const mapDispatchToProps = dispatch => ({
+  onDeleteContact: contactId => dispatch(actions.deleteContact(contactId)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(ContactList);
